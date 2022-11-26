@@ -11,7 +11,7 @@ const SPOTIFY_AUTHORIZATION_URL =
 		response_type: 'code',
 		client_id: client_id,
 		scope: 'user-read-playback-state user-modify-playback-state user-read-currently-playing streaming',
-		redirect_uri: 'http://localhost:3000/api/auth/callback/spotify',
+		redirect_uri: 'https://nak-player.vercel.app/api/auth/callback/spotify',
 		grant_type: 'authorization_code',
 	} as Record<string, string>);
 
