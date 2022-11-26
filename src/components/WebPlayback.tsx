@@ -1,29 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaBackward, FaForward, FaPlay, FaPause } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { setAsyncInterval, clearAsyncInterval } from '../utils/async_interval';
 import { Audio } from 'react-loader-spinner';
 import SlidingText from './SlidingText';
-import Script from 'next/script';
+
 import {
 	Track,
 	PlaybackState,
 	Artist,
 	SpotifySession,
+	Player,
 } from '../utils/spotify_player';
-
-interface Player {
-	previousTrack: () => void;
-	togglePlay: () => void;
-	nextTrack: () => void;
-	addListener: (
-		event: string,
-		cb: (arg0: any) => void
-	) => void | Promise<void>;
-	connect: () => void;
-	getCurrentState: () => Promise<any>;
-}
 
 function WebPlayback() {
 	const { data: session } = useSession();
@@ -93,86 +82,80 @@ function WebPlayback() {
 		return <Audio height="80" width="80" color="white" />;
 	};
 
-	const onReady = () => {
-		if (!!session) {
-			const token = (session as SpotifySession).accesstoken;
-			const player = new (window as any).Spotify.Player({
-				name: 'nak-player',
-				getOAuthToken: (cb: (arg0: any) => void) => {
-					cb(token);
-				},
-				volume: 0.5,
-			});
-
-			setPlayer(player); // for play pause control buttons
-
-			const connectDevice = async (device_id: string) => {
-				await fetch('https://api.spotify.com/v1/me/player', {
-					method: 'PUT',
-					headers: {
-						Authorization: `Bearer ${token}`,
-						'Content-Type': 'application/json',
+	useEffect(() => {
+		if (session) {
+			addSpotifyPlayer();
+			(window as any).onSpotifyWebPlaybackSDKReady = () => {
+				const token = (session as SpotifySession).accesstoken;
+				const player = new (window as any).Spotify.Player({
+					name: 'nak-player',
+					getOAuthToken: (cb: (arg0: any) => void) => {
+						cb(token);
 					},
-					body: JSON.stringify({
-						device_ids: [device_id],
-					}),
+					volume: 0.5,
 				});
+
+				setPlayer(player); // for play pause control buttons
+
+				const connectDevice = async (device_id: string) => {
+					await fetch('https://api.spotify.com/v1/me/player', {
+						method: 'PUT',
+						headers: {
+							Authorization: `Bearer ${token}`,
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							device_ids: [device_id],
+						}),
+					});
+				};
+
+				const positionInterval = () =>
+					setAsyncInterval(async () => {
+						const state = await player.getCurrentState();
+						setPosition(state?.position);
+					}, 300);
+
+				player.addListener(
+					'ready',
+					async ({ device_id }: { device_id: string }): Promise<void> => {
+						await connectDevice(device_id);
+						setReady(true);
+					}
+				);
+
+				player.addListener(
+					'player_state_changed',
+					async (state: PlaybackState) => {
+						if (!state) {
+							return;
+						}
+
+						setTrack(state.track_window.current_track);
+						setDuration(state.track_window.current_track.duration_ms);
+						setPaused(state.paused);
+
+						const curr_state = await player.getCurrentState();
+						if (curr_state) {
+							setActive(true);
+							positionInterval();
+						} else {
+							setActive(false);
+							clearAsyncInterval(0);
+							setPosition(0);
+						}
+					}
+				);
+
+				player.connect();
 			};
-
-			const positionInterval = () =>
-				setAsyncInterval(async () => {
-					const state = await player.getCurrentState();
-					setPosition(state?.position);
-				}, 300);
-
-			player.addListener(
-				'ready',
-				async ({ device_id }: { device_id: string }): Promise<void> => {
-					await connectDevice(device_id);
-					setReady(true);
-				}
-			);
-
-			player.addListener(
-				'player_state_changed',
-				async (state: PlaybackState) => {
-					if (!state) {
-						return;
-					}
-
-					setTrack(state.track_window.current_track);
-					setDuration(state.track_window.current_track.duration_ms);
-					setPaused(state.paused);
-
-					const curr_state = await player.getCurrentState();
-					if (curr_state) {
-						setActive(true);
-						positionInterval();
-					} else {
-						setActive(false);
-						clearAsyncInterval(0);
-						setPosition(0);
-					}
-				}
-			);
-
-			player.connect();
 		}
-	};
+	}, [session]);
 
 	return (
-		<>
-			<Script
-				src="https://sdk.scdn.co/spotify-player.js"
-				id="spot-player"
-				onReady={onReady}
-				async={true}
-				strategy="lazyOnload"
-			></Script>
-			<div className="mx-auto flex flex-row items-center content-center justify-center border-2 border-light p-5 rounded-xl dark:bg-[#191414]">
-				{playerDiv()}
-			</div>
-		</>
+		<div className="mx-auto flex flex-row items-center content-center justify-center border-2 border-light p-5 rounded-xl dark:bg-[#191414]">
+			{playerDiv()}
+		</div>
 	);
 }
 
@@ -202,6 +185,16 @@ const artistsList = (artists: Artist[] | undefined) => {
 		return list.join(' ');
 	}
 	return '';
+};
+
+const addSpotifyPlayer = () => {
+	if (document.getElementById('spot-player') === null) {
+		const script = document.createElement('script');
+		script.src = 'https://sdk.scdn.co/spotify-player.js';
+		script.id = 'spot-player';
+		script.async = true;
+		document.body.appendChild(script);
+	}
 };
 
 export default WebPlayback;

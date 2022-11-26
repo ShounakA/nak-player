@@ -1,17 +1,18 @@
-import { Session } from 'inspector';
 import NextAuth from 'next-auth';
 import SpotifyProvider from 'next-auth/providers/spotify';
 import { SpotifySession } from '../../../utils/spotify_player';
 
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
+const host = process.env.DEV_HOST ?? 'https://nak-player.vercel.app';
+
 const SPOTIFY_AUTHORIZATION_URL =
 	'https://accounts.spotify.com/authorize?' +
 	new URLSearchParams({
 		response_type: 'code',
 		client_id: client_id,
 		scope: 'user-read-playback-state user-modify-playback-state user-read-currently-playing streaming',
-		redirect_uri: 'https://nak-player.vercel.app/api/auth/callback/spotify',
+		redirect_uri: `${host}/api/auth/callback/spotify`,
 		grant_type: 'authorization_code',
 	} as Record<string, string>);
 

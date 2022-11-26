@@ -40,3 +40,15 @@ export interface SpotifySession extends Session {
 	accesstoken: string;
 	error: string;
 }
+
+export interface Player {
+	previousTrack: () => void;
+	togglePlay: () => void;
+	nextTrack: () => void;
+	addListener: (
+		event: string,
+		cb: (arg0: any) => void
+	) => void | Promise<void>;
+	connect: () => void;
+	getCurrentState: () => Promise<any>;
+}
