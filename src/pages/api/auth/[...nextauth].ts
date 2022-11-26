@@ -70,6 +70,7 @@ export const authOptions = {
 			authorization: SPOTIFY_AUTHORIZATION_URL,
 		} as { clientId: string; clientSecret: string }),
 	],
+	secret: process.env.SECRET,
 	callbacks: {
 		async jwt({
 			token,
