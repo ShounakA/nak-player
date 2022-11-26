@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+   input[type=range] {
+      -webkit-appearance: none;
+     @apply appearance-none bg-transparent;
+   }
+ 
+   input[type=range]::-webkit-slider-runnable-track {
+      -webkit-appearance: none;
+      @apply  bg-black/25 rounded-full h-2;
+   }
+
+   input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      @apply bg-bud w-1 h-3 rounded-full cursor-pointer;
+   }
+
+   
+ }

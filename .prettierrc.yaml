@@ -1,0 +1,6 @@
+singleQuote: true
+useTabs: true
+semi: true
+tabWidth: 3
+endOfLine: "auto"
+trailingComma: "es5"
