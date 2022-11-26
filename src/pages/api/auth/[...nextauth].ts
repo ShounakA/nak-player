@@ -1,6 +1,7 @@
 import { Session } from 'inspector';
 import NextAuth from 'next-auth';
 import SpotifyProvider from 'next-auth/providers/spotify';
+import { SpotifySession } from '../../../utils/spotify_player';
 
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -97,9 +98,15 @@ export const authOptions = {
 			// Access token has expired, try to update it
 			return refreshAccessToken(token);
 		},
-		async session({ session, token }: { session: any; token: any }) {
+		async session({
+			session,
+			token,
+		}: {
+			session: SpotifySession;
+			token: any;
+		}) {
 			session.user = token.user;
-			session.accessToken = token.accessToken;
+			session.accesstoken = token.accessToken;
 			session.error = token.error;
 
 			return session;

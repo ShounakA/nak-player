@@ -6,19 +6,12 @@ import { setAsyncInterval, clearAsyncInterval } from '../utils/async_interval';
 import { Audio } from 'react-loader-spinner';
 import SlidingText from './SlidingText';
 import Script from 'next/script';
-
-interface Track {
-	name: string;
-	album: {
-		name: string;
-		images: { url: string }[];
-	};
-	artists: Artist[];
-}
-
-interface Artist {
-	name: string;
-}
+import {
+	Track,
+	PlaybackState,
+	Artist,
+	SpotifySession,
+} from '../utils/spotify_player';
 
 interface Player {
 	previousTrack: () => void;
@@ -49,7 +42,6 @@ function WebPlayback() {
 					{albumCover(current_track)}
 					<div className="py-4">
 						<SlidingText
-							className="dark:text-light text-lg"
 							text={current_track.name}
 							textStyles="dark:bg-[#191414] dark:text-light text-lg w-25 overflow-x-scroll focus:outline-0 text-center"
 						/>
@@ -103,7 +95,7 @@ function WebPlayback() {
 
 	const onReady = () => {
 		if (!!session) {
-			const token = (session as any).accessToken;
+			const token = (session as SpotifySession).accesstoken;
 			const player = new (window as any).Spotify.Player({
 				name: 'nak-player',
 				getOAuthToken: (cb: (arg0: any) => void) => {
@@ -133,30 +125,36 @@ function WebPlayback() {
 					setPosition(state?.position);
 				}, 300);
 
-			player.addListener('ready', async ({ device_id }): Promise<void> => {
-				await connectDevice(device_id);
-				setReady(true);
-			});
-
-			player.addListener('player_state_changed', async (state) => {
-				if (!state) {
-					return;
+			player.addListener(
+				'ready',
+				async ({ device_id }: { device_id: string }): Promise<void> => {
+					await connectDevice(device_id);
+					setReady(true);
 				}
+			);
 
-				setTrack(state.track_window.current_track);
-				setDuration(state.track_window.current_track.duration_ms);
-				setPaused(state.paused);
+			player.addListener(
+				'player_state_changed',
+				async (state: PlaybackState) => {
+					if (!state) {
+						return;
+					}
 
-				const curr_state = await player.getCurrentState();
-				if (curr_state) {
-					setActive(true);
-					positionInterval();
-				} else {
-					setActive(false);
-					clearAsyncInterval(0);
-					setPosition(0);
+					setTrack(state.track_window.current_track);
+					setDuration(state.track_window.current_track.duration_ms);
+					setPaused(state.paused);
+
+					const curr_state = await player.getCurrentState();
+					if (curr_state) {
+						setActive(true);
+						positionInterval();
+					} else {
+						setActive(false);
+						clearAsyncInterval(0);
+						setPosition(0);
+					}
 				}
-			});
+			);
 
 			player.connect();
 		}
