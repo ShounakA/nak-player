@@ -23,6 +23,7 @@ function WebPlayback() {
 	const [current_track, setTrack] = useState({} as Track);
 	const [position, setPosition] = useState(-1);
 	const [duration, setDuration] = useState(0);
+	const [theme, setTheme] = useState('');
 
 	const playerDiv = () => {
 		if (ready) {
@@ -32,11 +33,13 @@ function WebPlayback() {
 					<div className="py-4">
 						<SlidingText
 							text={current_track.name}
-							textStyles="dark:bg-[#191414] dark:text-light text-lg w-25 overflow-x-scroll focus:outline-0 text-center"
+							textStyles="dark:bg-[#191414] dark:text-light text-lg w-25 text-center cursor-pointer"
+							speed={25}
 						/>
 						<SlidingText
 							text={artistsList(current_track.artists)}
-							textStyles="dark:bg-[#191414] dark:text-light w-25 overflow-x-scroll focus:outline-0 text-center"
+							textStyles="dark:bg-[#191414] dark:text-light w-25 text-center cursor-pointer"
+							speed={20}
 						/>
 					</div>
 					<div className="py-2">
@@ -50,7 +53,7 @@ function WebPlayback() {
 					</div>
 					<div className="mx-auto flex flex-row items-center content-center justify-center py-4">
 						<button
-							className="dark:bg-bud dark:text-light p-6 rounded-full mx-2"
+							className="bg-bud dark:text-light p-6 rounded-full mx-2"
 							onClick={() => {
 								(player as any).previousTrack();
 							}}
@@ -59,7 +62,7 @@ function WebPlayback() {
 						</button>
 
 						<button
-							className="dark:bg-bud dark:text-light p-10 rounded-full mx-2"
+							className="bg-bud dark:text-light p-10 rounded-full mx-2"
 							onClick={() => {
 								(player as any).togglePlay();
 							}}
@@ -68,7 +71,7 @@ function WebPlayback() {
 						</button>
 
 						<button
-							className="dark:bg-bud dark:text-light p-6 rounded-full mx-2"
+							className="bg-bud dark:text-light p-6 rounded-full mx-2"
 							onClick={() => {
 								(player as any).nextTrack();
 							}}
@@ -79,10 +82,24 @@ function WebPlayback() {
 				</div>
 			);
 		}
-		return <Audio height="80" width="80" color="white" />;
+		return theme === 'light' ? (
+			<Audio height="80" width="80" color="black" />
+		) : (
+			<Audio height="80" width="80" color="white" />
+		);
+	};
+
+	const checkUserTheme = () => {
+		const darkThemeMq = window.matchMedia('(prefers-color-scheme: dark)');
+		if (darkThemeMq.matches) {
+			setTheme('dark');
+		} else {
+			setTheme('light');
+		}
 	};
 
 	useEffect(() => {
+		checkUserTheme();
 		if (session) {
 			addSpotifyPlayer();
 			(window as any).onSpotifyWebPlaybackSDKReady = () => {
@@ -153,7 +170,7 @@ function WebPlayback() {
 	}, [session]);
 
 	return (
-		<div className="mx-auto flex flex-row items-center content-center justify-center border-2 border-light p-5 rounded-xl dark:bg-[#191414]">
+		<div className="mx-auto flex flex-row items-center content-center justify-center border-2 border-dark dark:border-light p-5 rounded-xl dark:bg-[#191414] bg-white">
 			{playerDiv()}
 		</div>
 	);

@@ -16,7 +16,7 @@ export default function Home() {
 	}, [session]);
 
 	return (
-		<main className="dark:bg-dark mx-auto flex flex-col items-center content-center justify-center min-h-screen min-w-full">
+		<main className="bg-light dark:bg-dark mx-auto flex flex-col items-center content-center justify-center min-h-screen min-w-full">
 			{status === 'unauthenticated' ? <Login /> : <WebPlayback />}
 		</main>
 	);
