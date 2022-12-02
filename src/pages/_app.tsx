@@ -4,15 +4,15 @@ import type { AppProps } from 'next/app';
 import Spotify from 'next-auth/providers/spotify';
 
 declare global {
-	interface Window {
-		Spotify: typeof Spotify;
-	}
+   interface Window {
+      Spotify: typeof Spotify;
+   }
 }
 
 export default function App({ Component, pageProps }: AppProps) {
-	return (
-		<SessionProvider>
-			<Component {...pageProps} />
-		</SessionProvider>
-	);
+   return (
+      <SessionProvider>
+         <Component {...pageProps} />
+      </SessionProvider>
+   );
 }
