@@ -149,6 +149,20 @@ function WebPlayback() {
             );
 
             player.addListener(
+               'authentication_error',
+               ({ message }: { message: string }) => {
+                  console.error(message);
+               }
+            );
+
+            player.addListener(
+               'account_error',
+               ({ message }: { message: string }) => {
+                  console.error(message);
+               }
+            );
+
+            player.addListener(
                'player_state_changed',
                async (state: PlaybackState) => {
                   if (!state) {
