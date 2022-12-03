@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FaBackward, FaForward, FaPlay, FaPause } from 'react-icons/fa';
+import { NextRouter, useRouter } from 'next/router';
+import { FaBackward, FaForward, FaPlay, FaPause, FaHammer } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { setAsyncInterval, clearAsyncInterval } from '../utils/async_interval';
@@ -14,6 +15,36 @@ import {
    Player,
 } from '../utils/spotify_player';
 
+const forceReconnect = (router: NextRouter) => {
+   document.cookie
+      .split(';')
+      .filter((c) => c.includes('next-auth'))
+      .forEach((c) => {
+         document.cookie = c
+            .replace(/^ +/, '')
+            .replace(
+               /=.*/,
+               '=;expires=' + new Date().toUTCString() + ';path=/'
+            );
+      });
+   router.reload();
+};
+
+const renderReconnectButton = (needReconnect: boolean, router: NextRouter) => {
+   if (needReconnect) {
+      return (
+         <>
+            <button
+               className="bg-bud dark:text-light p-6 rounded-full mx-2"
+               onClick={() => forceReconnect(router)}
+            >
+               <FaHammer />
+            </button>
+         </>
+      );
+   }
+};
+
 function WebPlayback() {
    const { data: session } = useSession();
    const [player, setPlayer] = useState({} as Player);
@@ -24,6 +55,8 @@ function WebPlayback() {
    const [position, setPosition] = useState(-1);
    const [duration, setDuration] = useState(0);
    const [theme, setTheme] = useState('');
+   const [needReconnect, setneedReconnect] = useState(false);
+   const router = useRouter();
 
    const playerDiv = () => {
       if (ready) {
@@ -83,9 +116,15 @@ function WebPlayback() {
          );
       }
       return theme === 'light' ? (
-         <Audio height="80" width="80" color="black" />
+         <>
+            <Audio height="80" width="80" color="black" />
+            {renderReconnectButton(needReconnect, router)}
+         </>
       ) : (
-         <Audio height="80" width="80" color="white" />
+         <>
+            <Audio height="80" width="80" color="white" />
+            {renderReconnectButton(needReconnect, router)}
+         </>
       );
    };
 
@@ -152,15 +191,7 @@ function WebPlayback() {
                'authentication_error',
                ({ message }: { message: string }) => {
                   console.error(message);
-                  player.disconnect();
-                  console.log('Reconnecting the web player...');
-                  player.connect().then((success: any) => {
-                     if (success) {
-                        console.log(
-                           'The Web Playback SDK successfully connected to Spotify!'
-                        );
-                     }
-                  });
+                  setneedReconnect(true);
                }
             );
 
