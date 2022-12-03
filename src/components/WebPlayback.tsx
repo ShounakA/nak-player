@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { NextRouter, useRouter } from 'next/router';
-import { FaBackward, FaForward, FaPlay, FaPause, FaHammer } from 'react-icons/fa';
+import {
+   FaBackward,
+   FaForward,
+   FaPlay,
+   FaPause,
+   FaHammer,
+} from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { setAsyncInterval, clearAsyncInterval } from '../utils/async_interval';
