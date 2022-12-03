@@ -151,14 +151,8 @@ function WebPlayback() {
             player.addListener(
                'authentication_error',
                ({ message }: { message: string }) => {
-                  console.error(message);
-               }
-            );
-
-            player.addListener(
-               'account_error',
-               ({ message }: { message: string }) => {
-                  console.error(message);
+                  console.log('Reconnecting the web player...');
+                  player.connect();
                }
             );
 
