@@ -194,6 +194,10 @@ function WebPlayback() {
                   );
                }
             });
+
+            return () => {
+               player.disconnect();
+            };
          };
       }
    }, [session]);
