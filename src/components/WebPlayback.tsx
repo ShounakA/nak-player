@@ -136,7 +136,7 @@ function WebPlayback() {
             player.addListener(
                'ready',
                async ({ device_id }: { device_id: string }): Promise<void> => {
-                  await connectDevice(device_id);
+                  // await connectDevice(device_id);
                   setReady(true);
                }
             );
