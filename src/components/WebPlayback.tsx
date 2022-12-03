@@ -102,7 +102,7 @@ function WebPlayback() {
       checkUserTheme();
       if (session) {
          addSpotifyPlayer();
-         (window as any).onSpotifyWebPlaybackSDKReady = () => {
+         (window as any).onSpotifyWebPlaybackSDKReady = async () => {
             const token = (session as SpotifySession).accesstoken;
             const player = new (window as any).Spotify.Player({
                name: 'nak-player',
@@ -150,11 +150,11 @@ function WebPlayback() {
 
             player.addListener(
                'authentication_error',
-               ({ message }: { message: string }) => {
+               async ({ message }: { message: string }) => {
                   console.error(message);
                   console.log('Reconnecting the web player...');
-                  player.disconnect();
-                  player.connect();
+                  await player.disconnect();
+                  await player.connect();
                }
             );
 
@@ -181,7 +181,7 @@ function WebPlayback() {
                }
             );
 
-            player.connect();
+            await player.connect();
          };
       }
    }, [session]);
